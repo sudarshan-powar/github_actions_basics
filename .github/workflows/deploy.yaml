@@ -22,7 +22,7 @@ jobs:
     - name: Build deployment package with Docker
       run: |
         mkdir lambda_build
-        cp $HANDLER_FILE util.py lambda_build/
+        cp *.py util.py lambda_build/
 
         docker run --rm -v "$PWD/lambda_build":/app amazonlinux:2 /bin/bash -c "
           yum update -y &&
