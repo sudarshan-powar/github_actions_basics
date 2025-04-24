@@ -30,7 +30,7 @@ jobs:
           pip3 install --upgrade pip &&
           cd /app &&
           pip3 install pg8000 s2sphere -t . &&
-          zip -r9 /app/lambda_function.zip .
+          zip -r9 lambda.zip .
         "
 
     - name: Configure AWS credentials
