@@ -1,44 +1,58 @@
-name: Deploy Hello World Lambda
+name: Deploy Lambda to AWS
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]  # change or add `workflow_dispatch` for manual trigger
 
 jobs:
   deploy:
+    name: Build and Deploy Lambda
     runs-on: ubuntu-latest
 
+    env:
+      FUNCTION_NAME: your-lambda-function-name  # ✅ replace with your Lambda function name
+      HANDLER_FILE: find_nearest_volunteers.py
+      PYTHON_VERSION: "3.9"
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+    - name: Build deployment package with Docker
+      run: |
+        mkdir lambda_build
+        cp $HANDLER_FILE util.py lambda_build/
 
-      - name: Install dependencies (if any)
-        run: |
-          pip install -r requirements.txt
+        docker run --rm -v "$PWD/lambda_build":/app amazonlinux:2 /bin/bash -c "
+          yum update -y &&
+          yum install -y python3 gcc python3-devel zip &&
+          pip3 install --upgrade pip &&
+          cd /app &&
+          pip3 install pg8000 s2sphere -t . &&
+          zip -r9 /app/../lambda_function.zip .
+        "
 
-      - name: Zip Lambda function
-        run: zip function.zip lambda_function.py
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2  # ✅ change this to your region
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+    - name: Deploy Lambda Code
+      run: |
+        aws lambda update-function-code \
+          --function-name "$FUNCTION_NAME" \
+          --zip-file fileb://lambda_function.zip
 
-      - name: Deploy Lambda function
-        run: |
-          aws lambda create-function \
-            --function-name hello-world-lambda \
-            --runtime python3.9 \
-            --role arn:aws:iam::211125475524:role/Saayam_lambda_role \
-            --handler lambda_function.lambda_handler \
-            --zip-file fileb://function.zip || \
-          aws lambda update-function-code \
-            --function-name hello-world-lambda \
-            --zip-file fileb://function.zip
+    - name: Update Environment Variables
+      run: |
+        aws lambda update-function-configuration \
+          --function-name "$FUNCTION_NAME" \
+          --environment "Variables={
+            DB_HOST='${{ secrets.DB_HOST }}',
+            DB_PORT='${{ secrets.DB_PORT }}',
+            DB_NAME='${{ secrets.DB_NAME }}',
+            DB_USER='${{ secrets.DB_USER }}',
+            DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+          }"
