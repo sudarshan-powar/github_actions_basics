@@ -43,26 +43,26 @@ jobs:
     - name: Deploy Lambda Code
       run: |
         aws lambda update-function-code \
-          --function-name "$FUNCTION_NAME" \
-          --zip-file fileb://lambda_build/lambda.zip
+        --function-name "$FUNCTION_NAME" \
+        --zip-file fileb://lambda_build/lambda.zip
 
     - name: Update Lambda Handler
       run: |
         sleep 10
         aws lambda update-function-configuration \
-          --function-name "$FUNCTION_NAME" \
-          --handler "${HANDLER_FILE%.py}.lambda_handler"
+        --function-name "$FUNCTION_NAME" \
+        --handler "${HANDLER_FILE%.py}.lambda_handler"
 
     - name: Update Environment Variables (Retry on conflict)
       run: |
         echo "Waiting for Lambda function to be ready for configuration update..."
         sleep 10
         aws lambda update-function-configuration \
-          --function-name "$FUNCTION_NAME" \
-          --environment "Variables={
-            DB_HOST='${{ secrets.DB_HOST }}',
-            DB_PORT='${{ secrets.DB_PORT }}',
-            DB_NAME='${{ secrets.DB_NAME }}',
-            DB_USER='${{ secrets.DB_USER }}',
-            DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
-          }"
+        --function-name "$FUNCTION_NAME" \
+        --environment "Variables={
+          DB_HOST='${{ secrets.DB_HOST }}',
+          DB_PORT='${{ secrets.DB_PORT }}',
+          DB_NAME='${{ secrets.DB_NAME }}',
+          DB_USER='${{ secrets.DB_USER }}',
+          DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+        }"
