@@ -46,14 +46,23 @@ jobs:
           --function-name "$FUNCTION_NAME" \
           --zip-file fileb://lambda_build/lambda.zip
 
-    - name: Update Environment Variables
+    - name: Update Environment Variables (Retry on conflict)
       run: |
-        aws lambda update-function-configuration \
-          --function-name "$FUNCTION_NAME" \
-          --environment "Variables={
-            DB_HOST='${{ secrets.DB_HOST }}',
-            DB_PORT='${{ secrets.DB_PORT }}',
-            DB_NAME='${{ secrets.DB_NAME }}',
-            DB_USER='${{ secrets.DB_USER }}',
-            DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
-          }"
+        echo "Waiting for Lambda function to be ready for configuration update..."
+        RETRIES=6
+        SLEEP=8
+
+        for i in $(seq 1 $RETRIES); do
+          aws lambda update-function-configuration \
+            --function-name "$FUNCTION_NAME" \
+            --environment "Variables={
+              DB_HOST='${{ secrets.DB_HOST }}',
+              DB_PORT='${{ secrets.DB_PORT }}',
+              DB_NAME='${{ secrets.DB_NAME }}',
+              DB_USER='${{ secrets.DB_USER }}',
+              DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
+            }" && break || {
+              echo "Attempt $i failed. Retrying in $SLEEP seconds..."
+              sleep $SLEEP
+            }
+        done
