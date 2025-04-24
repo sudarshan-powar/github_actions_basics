@@ -3,6 +3,7 @@ name: Deploy Lambda to AWS
 on:
   push:
     branches: [ main ]  # change or add `workflow_dispatch` for manual trigger
+    workflow_dispatch:
 
 jobs:
   deploy:
