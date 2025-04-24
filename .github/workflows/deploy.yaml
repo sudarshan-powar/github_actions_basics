@@ -45,10 +45,10 @@ jobs:
 
     - name: Deploy Lambda Code
       run: |
+        echo "Lambda ZIP present at: lambda_build/lambda.zip"
         aws lambda update-function-code \
           --function-name "$FUNCTION_NAME" \
           --zip-file fileb://lambda_build/lambda.zip
-
 
     - name: Update Environment Variables
       run: |
