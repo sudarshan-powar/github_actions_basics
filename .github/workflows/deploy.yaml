@@ -31,6 +31,7 @@ jobs:
           python3 -m pip install --upgrade pip &&
           cd /app &&
           python3 -m pip install psycopg2 s2sphere -t . &&
+          zip -r9 lambda.zip .
         "
 
     - name: Configure AWS credentials
