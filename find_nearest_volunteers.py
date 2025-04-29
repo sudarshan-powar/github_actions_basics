@@ -13,6 +13,10 @@ def get_db_connection():
     return conn
 
 def lambda_handler(event, context):
+    print("Environment variables:")
+    for key, value in os.environ.items():
+        print(f"{key}: {value}")
+    
     try:
         # Just a basic connection test
         conn = get_db_connection()
