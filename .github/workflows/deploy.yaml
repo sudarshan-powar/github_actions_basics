@@ -29,7 +29,7 @@ jobs:
           yum install -y python3 gcc postgresql-devel python3-devel zip &&
           pip3 install --upgrade pip &&
           cd /app &&
-          pip3 install psycopg2-binary s2sphere -t . &&
+          pip3 install psycopg2 s2sphere -t . &&
           zip -r9 lambda.zip .
         "
 
