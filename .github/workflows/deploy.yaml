@@ -48,6 +48,9 @@ jobs:
           zip -r9 /app/lambda.zip .
         "
 
+    - name: List contents of lambda_build
+      run: ls -lh lambda_build
+  
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -76,7 +79,7 @@ jobs:
         --function-name "$FUNCTION_NAME" \
         --environment "Variables={
           DB_HOST='${{ secrets.DB_HOST }}',
-          DB_PORT='${{ secrets.DB_PORT }}',
+          DB_PORT='${{ secrets.DB_PORT }}'
           DB_NAME='${{ secrets.DB_NAME }}',
           DB_USER='${{ secrets.DB_USER }}',
           DB_PASSWORD='${{ secrets.DB_PASSWORD }}'
