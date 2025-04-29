@@ -34,18 +34,16 @@ jobs:
     #       zip -r9 lambda.zip .
     #     "
 
-    - name: Build deployment package with Docker
+    - name: Build deployment package with AWS Lambda base image
       run: |
         mkdir lambda_build
         cp *.py lambda_build/
-
-        docker run --rm -v "$PWD/lambda_build":/app amazonlinux:2 /bin/bash -c "
-          yum update -y &&
-          yum install -y python3 gcc python3-devel postgresql-devel zip &&
-          pip3 install --upgrade pip &&
-          cd /app &&
-          pip3 install psycopg2-binary s2sphere -t . &&
-          zip -r9 /app/lambda.zip .
+  
+        docker run --rm -v "$PWD/lambda_build":/var/task \
+          public.ecr.aws/lambda/python:3.9 /bin/sh -c "
+          yum install -y postgresql-devel gcc python3-devel && \
+          pip3 install psycopg2-binary s2sphere -t . && \
+          zip -r9 /var/task/lambda.zip .
         "
 
     - name: List contents of lambda_build
